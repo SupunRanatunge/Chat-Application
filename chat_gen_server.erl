@@ -1,5 +1,5 @@
 -module(chat_gen_server).
--export([start_link/0, handle_call/3, init/1]).
+-export([start_link/0, handle_call/3, init/1, terminate/2]).
 -bahaviour(gen_server).
 
 
@@ -7,7 +7,7 @@
 
 
 start_link() ->
-    gen_server:start_link({global, chatServer}, ?MODULE, [], []).
+    gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
 init([]) -> {ok, []}.
 
@@ -22,6 +22,8 @@ handle_call({enter, Name}, _From, Clients) ->
         false ->
             {ClientPid,_} = _From,
             io:format("users~p~n", [Clients]),
+            io:format("users~p~n", [Name]),
+            io:format("users~p~n", [ClientPid]),
             case chat_gen_fsm: start_link(chat_gen_fsm, [{clients, Clients}, {name, Name}, {client_pid, ClientPid}],[] ) of
                 {ok, fsm_Pid} ->
                     NewClients = [{fsm_Pid, Name}| Clients],
@@ -34,6 +36,10 @@ handle_call({enter, Name}, _From, Clients) ->
             
             
     end.
+
+terminate(_Reason, _State) ->
+    ok.
+        
 
 
 

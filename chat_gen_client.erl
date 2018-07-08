@@ -1,7 +1,7 @@
 -module(chat_gen_client).
 -behaviour(gen_server). 
--export([start_link/1]).
--export([init/1]).
+-export([start_link/1, sendMessage/2]).
+-export([init/1, handle_call/3]).
 
 -record(state, {fsm_Pid}).
 
@@ -10,7 +10,9 @@ start_link(Name) ->
     gen_server:start_link({local, clientServer}, ?MODULE, [Name], []).
 
 init(Name) -> 
-    % gen_server: call({global, chat_gen_server}, {enter, Name}).
+    % {value, {_, Name}} = lists:keysearch(name, 1, Args),
+    
+    io:fwrite("init arguments : ~p ~n", [Name]),
     case gen_server:call({global, chat_gen_server}, {enter, Name}) of
     {ok, Fsm_Pid} ->
       {ok, #state{ fsm_Pid = Fsm_Pid}};
@@ -20,8 +22,10 @@ init(Name) ->
   end.
 
 handle_call({ReceiverName, Message}, From, Clients) ->
-  gen_fsm:send_event(fsm_Pid, {send, {ReceiverName, Message}}).
-  {reply, message_is_sent_to_gen_fsm, Clients};
+  gen_fsm:send_event(fsm_Pid, {send, {ReceiverName, Message}}),
+  {reply, message_is_sent_to_gen_fsm, Clients}.
+
+
 sendMessage(ReceiverName, Message) ->
   gen_server:call(clientServer, {send, {ReceiverName, Message}}).
 
